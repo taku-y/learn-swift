@@ -8,14 +8,35 @@
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var cameraViewModel = CameraViewModel()
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        ZStack {
+            if let previewLayer = cameraViewModel.previewLayer {
+                CameraPreviewView(previewLayer: previewLayer)
+                    .ignoresSafeArea()
+            } else {
+                Color.black
+                    .ignoresSafeArea()
+            }
+            
+            if !cameraViewModel.isAuthorized {
+                VStack {
+                    Text("カメラへのアクセスが必要です")
+                        .foregroundColor(.white)
+                        .padding()
+                    Button("設定を開く") {
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
+                        }
+                    }
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+                }
+            }
         }
-        .padding()
     }
 }
 
