@@ -20,18 +20,18 @@ struct CameraPreviewView: UIViewRepresentable {
             let orientation = currentDevice.orientation
             let previewLayerConnection = connection
             
-            if previewLayerConnection.isVideoOrientationSupported {
+            if previewLayerConnection.isVideoRotationAngleSupported(0) {
                 switch orientation {
                 case .portrait:
-                    previewLayerConnection.videoOrientation = .portrait
+                    previewLayerConnection.videoRotationAngle = 90
                 case .landscapeRight:
-                    previewLayerConnection.videoOrientation = .landscapeLeft
+                    previewLayerConnection.videoRotationAngle = 180
                 case .landscapeLeft:
-                    previewLayerConnection.videoOrientation = .landscapeRight
+                    previewLayerConnection.videoRotationAngle = 0
                 case .portraitUpsideDown:
-                    previewLayerConnection.videoOrientation = .portraitUpsideDown
+                    previewLayerConnection.videoRotationAngle = 270
                 default:
-                    previewLayerConnection.videoOrientation = .portrait
+                    previewLayerConnection.videoRotationAngle = 90
                 }
             }
         }

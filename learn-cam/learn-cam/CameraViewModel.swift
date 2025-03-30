@@ -36,7 +36,7 @@ class CameraViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSampl
         session.sessionPreset = .high
         
         // カメラデバイスの設定
-        guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) else {
+        guard let videoDevice = AVCaptureDevice.default(for: .video) else {
             print("Failed to get camera device")
             return
         }
