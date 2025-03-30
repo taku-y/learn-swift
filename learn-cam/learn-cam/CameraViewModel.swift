@@ -1,7 +1,7 @@
 import AVFoundation
 import SwiftUI
 
-class CameraViewModel: NSObject, ObservableObject {
+class CameraViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     @Published var previewLayer: AVCaptureVideoPreviewLayer?
     @Published var isAuthorized = false
     
@@ -36,7 +36,7 @@ class CameraViewModel: NSObject, ObservableObject {
         session.sessionPreset = .high
         
         // カメラデバイスの設定
-        guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) else {
+        guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) else {
             print("Failed to get camera device")
             return
         }
@@ -51,11 +51,26 @@ class CameraViewModel: NSObject, ObservableObject {
             session.inputs.forEach { session.removeInput($0) }
             
             // 入力の追加
+            print("Can video input added: \(session.canAddInput(videoInput))")
             if session.canAddInput(videoInput) {
                 session.addInput(videoInput)
                 print("Successfully added video input")
             } else {
                 print("Failed to add video input")
+                session.commitConfiguration()
+                return
+            }
+            
+            // ビデオ出力の設定
+            let videoOutput = AVCaptureVideoDataOutput()
+            videoOutput.setSampleBufferDelegate(self, queue: DispatchQueue(label: "videoQueue"))
+            
+            print("Can video output added: \(session.canAddOutput(videoOutput))")
+            if session.canAddOutput(videoOutput) {
+                session.addOutput(videoOutput)
+                print("Successfully added video output")
+            } else {
+                print("Failed to add video output")
                 session.commitConfiguration()
                 return
             }
@@ -71,6 +86,11 @@ class CameraViewModel: NSObject, ObservableObject {
             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
                 self?.session.startRunning()
                 print("Camera session started")
+                
+                // 3秒後にセッションの状態を確認
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                    print("Session running after 3 seconds: \(self?.session.isRunning ?? false)")
+                }
             }
         } catch {
             print("Failed to create video input: \(error.localizedDescription)")
@@ -79,5 +99,11 @@ class CameraViewModel: NSObject, ObservableObject {
     
     deinit {
         session.stopRunning()
+    }
+    
+    // MARK: - AVCaptureVideoDataOutputSampleBufferDelegate
+    func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+        // ここでビデオフレームの処理を行う
+        // 例：フレームの保存、処理、表示など
     }
 } 

@@ -7,6 +7,13 @@
 
 import SwiftUI
 
+extension View {
+    func Print(_ item: Any) -> some View {
+        print(item)
+        return self
+    }
+}
+
 struct ContentView: View {
     @StateObject private var cameraViewModel = CameraViewModel()
     
@@ -21,6 +28,7 @@ struct ContentView: View {
                                 .stroke(Color.white, lineWidth: 2)
                         )
                         .padding()
+                        .Print("Preview layer is active")
                 } else {
                     Color.black
                         .frame(height: geometry.size.height * 0.8)
@@ -29,6 +37,7 @@ struct ContentView: View {
                                 .stroke(Color.white, lineWidth: 2)
                         )
                         .padding()
+                        .Print("Preview layer is nil")
                 }
                 
                 Spacer()

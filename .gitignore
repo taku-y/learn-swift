@@ -73,3 +73,9 @@ fastlane/test_output
 
 # Local Xcode settings
 **/local.xcconfig
+
+# Code Injection
+injectionforxcode/
+
+# VSCode
+.vscode/
