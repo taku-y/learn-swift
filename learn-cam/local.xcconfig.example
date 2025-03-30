@@ -1,0 +1,4 @@
+// Example local configuration file
+// Copy this file to local.xcconfig and update the values for your environment
+DEVELOPMENT_TEAM = YOUR_TEAM_ID
+PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.learn-cam 
