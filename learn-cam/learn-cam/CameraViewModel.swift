@@ -32,68 +32,71 @@ class CameraViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSampl
     }
     
     private func setupCamera() {
-        // セッションの設定
-        session.sessionPreset = .high
+        // プレビューレイヤーの設定（即時表示）
+        let previewLayer = AVCaptureVideoPreviewLayer(session: session)
+        previewLayer.videoGravity = .resizeAspectFill
+        self.previewLayer = previewLayer
         
-        // カメラデバイスの設定
-        guard let videoDevice = AVCaptureDevice.default(for: .video) else {
-            print("Failed to get camera device")
-            return
-        }
-        
-        do {
-            let videoInput = try AVCaptureDeviceInput(device: videoDevice)
+        // カメラの初期化を非同期で実行
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
             
-            // セッションの設定を開始
-            session.beginConfiguration()
+            // セッションの設定
+            self.session.sessionPreset = .medium
             
-            // 既存の入力があれば削除
-            session.inputs.forEach { session.removeInput($0) }
-            
-            // 入力の追加
-            print("Can video input added: \(session.canAddInput(videoInput))")
-            if session.canAddInput(videoInput) {
-                session.addInput(videoInput)
-                print("Successfully added video input")
-            } else {
-                print("Failed to add video input")
-                session.commitConfiguration()
+            // カメラデバイスの設定
+            guard let videoDevice = AVCaptureDevice.default(for: .video) else {
+                print("Failed to get camera device")
                 return
             }
             
-            // ビデオ出力の設定
-            let videoOutput = AVCaptureVideoDataOutput()
-            videoOutput.setSampleBufferDelegate(self, queue: DispatchQueue(label: "videoQueue"))
-            
-            print("Can video output added: \(session.canAddOutput(videoOutput))")
-            if session.canAddOutput(videoOutput) {
-                session.addOutput(videoOutput)
-                print("Successfully added video output")
-            } else {
-                print("Failed to add video output")
-                session.commitConfiguration()
-                return
-            }
-            
-            session.commitConfiguration()
-            
-            // プレビューレイヤーの設定
-            let previewLayer = AVCaptureVideoPreviewLayer(session: session)
-            previewLayer.videoGravity = .resizeAspectFill
-            self.previewLayer = previewLayer
-            
-            // セッションの開始
-            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                self?.session.startRunning()
+            do {
+                let videoInput = try AVCaptureDeviceInput(device: videoDevice)
+                
+                // セッションの設定を開始
+                self.session.beginConfiguration()
+                
+                // 既存の入力があれば削除
+                self.session.inputs.forEach { self.session.removeInput($0) }
+                
+                // 入力の追加
+                print("Can video input added: \(self.session.canAddInput(videoInput))")
+                if self.session.canAddInput(videoInput) {
+                    self.session.addInput(videoInput)
+                    print("Successfully added video input")
+                } else {
+                    print("Failed to add video input")
+                    self.session.commitConfiguration()
+                    return
+                }
+                
+                // ビデオ出力の設定
+                let videoOutput = AVCaptureVideoDataOutput()
+                videoOutput.setSampleBufferDelegate(self, queue: DispatchQueue(label: "videoQueue"))
+                
+                print("Can video output added: \(self.session.canAddOutput(videoOutput))")
+                if self.session.canAddOutput(videoOutput) {
+                    self.session.addOutput(videoOutput)
+                    print("Successfully added video output")
+                } else {
+                    print("Failed to add video output")
+                    self.session.commitConfiguration()
+                    return
+                }
+                
+                self.session.commitConfiguration()
+                
+                // セッションの開始
+                self.session.startRunning()
                 print("Camera session started")
                 
                 // 3秒後にセッションの状態を確認
                 DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-                    print("Session running after 3 seconds: \(self?.session.isRunning ?? false)")
+                    print("Session running after 3 seconds: \(self.session.isRunning)")
                 }
+            } catch {
+                print("Failed to create video input: \(error.localizedDescription)")
             }
-        } catch {
-            print("Failed to create video input: \(error.localizedDescription)")
         }
     }
     
