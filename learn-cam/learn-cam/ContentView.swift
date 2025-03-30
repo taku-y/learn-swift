@@ -15,67 +15,56 @@ extension View {
 }
 
 struct ContentView: View {
-    @StateObject private var cameraViewModel = CameraViewModel()
+    @StateObject private var viewModel = CameraViewModel()
     
     var body: some View {
         GeometryReader { geometry in
-            VStack {
-                if let previewLayer = cameraViewModel.previewLayer {
+            VStack(spacing: 0) {
+                // カメラプレビュー
+                if let previewLayer = viewModel.previewLayer {
                     CameraPreviewView(previewLayer: previewLayer) { pixelBuffer in
-                        cameraViewModel.processFrame(pixelBuffer)
-                    }
-                    .frame(height: geometry.size.height * 0.8)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.white, lineWidth: 2)
-                    )
-                    .padding()
-                    .Print("Preview layer is active")
-                } else {
-                    Color.black
-                        .frame(height: geometry.size.height * 0.8)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.white, lineWidth: 2)
-                        )
-                        .padding()
-                        .Print("Preview layer is nil")
-                }
-                
-                // CoreMLの処理結果を表示
-                Text(cameraViewModel.predictionResult)
-                    .foregroundColor(.white)
-                    .padding()
-                    .background(Color.black.opacity(0.7))
-                    .cornerRadius(10)
-                
-                Spacer()
-                
-                Text("Camera app")
-                    .font(.title)
-                    .foregroundColor(.white)
-                    .padding(.bottom, 20)
-            }
-            .background(Color.black)
-            .overlay {
-                if !cameraViewModel.isAuthorized {
-                    VStack {
-                        Text("カメラへのアクセスが必要です")
-                            .foregroundColor(.white)
-                            .padding()
-                        Button("設定を開く") {
-                            if let url = URL(string: UIApplication.openSettingsURLString) {
-                                UIApplication.shared.open(url)
-                            }
+                        Task {
+                            await viewModel.processFrame(pixelBuffer)
                         }
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
                     }
+                    .frame(height: geometry.size.height * 0.5)
+                    .clipped()
+                } else {
+                    Rectangle()
+                        .fill(Color.black)
+                        .frame(height: geometry.size.height * 0.5)
                 }
+                
+                // 深度マップ
+                if let depthMap = viewModel.depthMap {
+                    GeometryReader { depthGeometry in
+                        Image(uiImage: depthMap)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .rotationEffect(.degrees(90)) // 90度回転
+                            .frame(width: depthGeometry.size.width, height: depthGeometry.size.height)
+                            .clipped()
+                    }
+                    .frame(height: geometry.size.height * 0.5)
+                } else {
+                    Rectangle()
+                        .fill(Color.black)
+                        .frame(height: geometry.size.height * 0.5)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            
+            // カメラアクセス許可オーバーレイ
+            if !viewModel.isAuthorized {
+                Color.black
+                    .edgesIgnoringSafeArea(.all)
+                    .overlay(
+                        Text("カメラへのアクセスを許可してください")
+                            .foregroundColor(.white)
+                    )
             }
         }
+        .edgesIgnoringSafeArea(.all)
     }
 }
 

@@ -13,13 +13,6 @@ struct CameraPreviewView: UIViewRepresentable {
         view.previewLayer.session = previewLayer.session
         view.previewLayer.videoGravity = .resizeAspectFill
         
-        // オーバーレイビューの追加
-        let overlayView = CircleOverlayView()
-        overlayView.backgroundColor = .clear
-        view.addSubview(overlayView)
-        overlayView.frame = view.bounds
-        overlayView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        
         // フレーム処理用のセッション設定
         if let session = previewLayer.session {
             let videoOutput = AVCaptureVideoDataOutput()
