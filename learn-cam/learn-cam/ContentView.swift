@@ -21,14 +21,16 @@ struct ContentView: View {
         GeometryReader { geometry in
             VStack {
                 if let previewLayer = cameraViewModel.previewLayer {
-                    CameraPreviewView(previewLayer: previewLayer)
-                        .frame(height: geometry.size.height * 0.8)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.white, lineWidth: 2)
-                        )
-                        .padding()
-                        .Print("Preview layer is active")
+                    CameraPreviewView(previewLayer: previewLayer) { pixelBuffer in
+                        cameraViewModel.processFrame(pixelBuffer)
+                    }
+                    .frame(height: geometry.size.height * 0.8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.white, lineWidth: 2)
+                    )
+                    .padding()
+                    .Print("Preview layer is active")
                 } else {
                     Color.black
                         .frame(height: geometry.size.height * 0.8)
@@ -39,6 +41,13 @@ struct ContentView: View {
                         .padding()
                         .Print("Preview layer is nil")
                 }
+                
+                // CoreMLの処理結果を表示
+                Text(cameraViewModel.predictionResult)
+                    .foregroundColor(.white)
+                    .padding()
+                    .background(Color.black.opacity(0.7))
+                    .cornerRadius(10)
                 
                 Spacer()
                 

@@ -1,9 +1,11 @@
 import AVFoundation
 import SwiftUI
+import CoreML
 
 class CameraViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     @Published var previewLayer: AVCaptureVideoPreviewLayer?
     @Published var isAuthorized = false
+    @Published var predictionResult: String = "No prediction yet"
     
     private let session = AVCaptureSession()
     
@@ -108,5 +110,28 @@ class CameraViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSampl
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         // ここでビデオフレームの処理を行う
         // 例：フレームの保存、処理、表示など
+    }
+    
+    // MARK: - CoreML Processing
+    func processFrame(_ pixelBuffer: CVPixelBuffer) {
+        // ここにCoreMLモデルの処理を実装
+        // 例：
+        /*
+        do {
+            let config = MLModelConfiguration()
+            let model = try YourModel(configuration: config)
+            let prediction = try model.prediction(input: YourModelInput(image: pixelBuffer))
+            DispatchQueue.main.async {
+                self.predictionResult = prediction.output
+            }
+        } catch {
+            print("CoreML prediction error: \(error)")
+        }
+        */
+        
+        // モックの実装
+        DispatchQueue.main.async {
+            self.predictionResult = "Processing frame at \(Date())"
+        }
     }
 } 
